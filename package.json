@@ -1,0 +1,16 @@
+{
+  "name": "dls-puppeteer-server",
+  "version": "1.0.0",
+  "description": "Simple Express + Puppeteer API for DLS automation",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "puppeteer": "^22.10.0"
+  },
+  "license": "ISC"
+}
