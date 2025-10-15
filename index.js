@@ -4,15 +4,11 @@ import cors from "cors";
 
 const app = express();
 
-// ----------------------------------
 // Middleware
-// ----------------------------------
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// ----------------------------------
-// Health check route
-// ----------------------------------
+// Health check
 app.get("/", (req, res) => {
   res.send(`
     <h2>✅ DLS Puppeteer API is Live</h2>
@@ -31,16 +27,13 @@ app.get("/", (req, res) => {
   `);
 });
 
-// ----------------------------------
-// Puppeteer route
-// ----------------------------------
+// Main API route
 app.post("/submit-dls", async (req, res) => {
   const fields = req.body.fields || {};
   console.log("📥 Received fields:", JSON.stringify(fields, null, 2));
 
   let browser;
   try {
-    // 🚀 Launch Puppeteer with built-in Chromium
     browser = await puppeteer.launch({
       headless: true,
       executablePath: puppeteer.executablePath(),
@@ -61,10 +54,10 @@ app.post("/submit-dls", async (req, res) => {
       waitUntil: "networkidle2",
     });
 
-    // Wait 3s to let page load
+    // Wait for page load
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    // Try filling fields (optional)
+    // Optionally fill form fields
     const SELECTORS = {
       governorate: "#form-gov-select",
       directorate: "#form-directorate-select",
@@ -95,7 +88,6 @@ app.post("/submit-dls", async (req, res) => {
     console.log("🕐 Waiting for map to load...");
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // Capture screenshot
     const screenshot = await page.screenshot({
       encoding: "base64",
       fullPage: true,
@@ -120,8 +112,8 @@ app.post("/submit-dls", async (req, res) => {
   }
 });
 
-// ----------------------------------
 // Start server
-// ----------------------------------
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT}`)
+);

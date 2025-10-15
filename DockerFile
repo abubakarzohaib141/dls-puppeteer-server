@@ -37,13 +37,12 @@ RUN apt-get update && apt-get install -y \
   xdg-utils \
   && rm -rf /var/lib/apt/lists/*
 
-# 👇 Install Chrome for Puppeteer
+# Install Chrome for Puppeteer (for Render)
 RUN npx puppeteer browsers install chrome
 
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-
 EXPOSE 3000
 CMD ["npm", "start"]
