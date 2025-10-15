@@ -4,15 +4,15 @@ import cors from "cors";
 
 const app = express();
 
-// ----------------------------
-// 🧩 Middleware
-// ----------------------------
+// ----------------------------------
+// Middleware
+// ----------------------------------
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// ----------------------------
-// 🌐 Health Check Route (GET /)
-// ----------------------------
+// ----------------------------------
+// Health check route
+// ----------------------------------
 app.get("/", (req, res) => {
   res.send(`
     <h2>✅ DLS Puppeteer API is Live</h2>
@@ -31,20 +31,19 @@ app.get("/", (req, res) => {
   `);
 });
 
-// ----------------------------
-// 🚀 Main Route (POST /submit-dls)
-// ----------------------------
+// ----------------------------------
+// Puppeteer route
+// ----------------------------------
 app.post("/submit-dls", async (req, res) => {
   const fields = req.body.fields || {};
   console.log("📥 Received fields:", JSON.stringify(fields, null, 2));
 
   let browser;
   try {
-    // ----------------------------
-    // 🧠 Launch Puppeteer
-    // ----------------------------
+    // 🚀 Launch Puppeteer with built-in Chromium
     browser = await puppeteer.launch({
       headless: true,
+      executablePath: puppeteer.executablePath(),
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -52,8 +51,6 @@ app.post("/submit-dls", async (req, res) => {
         "--disable-gpu",
         "--window-size=1920,1080",
       ],
-      executablePath:
-        process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
     });
 
     const page = await browser.newPage();
@@ -64,12 +61,10 @@ app.post("/submit-dls", async (req, res) => {
       waitUntil: "networkidle2",
     });
 
-    // ⏳ Replace waitForTimeout() → new Promise()
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Wait 3s to let page load
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    // ----------------------------
-    // 🧩 Try to fill form fields (optional)
-    // ----------------------------
+    // Try filling fields (optional)
     const SELECTORS = {
       governorate: "#form-gov-select",
       directorate: "#form-directorate-select",
@@ -88,7 +83,7 @@ app.post("/submit-dls", async (req, res) => {
         if (exists) {
           console.log(`📝 Setting ${key}: ${value}`);
           await page.select(selector, value);
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
         } else {
           console.log(`⚠️ Selector not found for ${key}`);
         }
@@ -97,15 +92,10 @@ app.post("/submit-dls", async (req, res) => {
       }
     }
 
-    // ----------------------------
-    // 🗺️ Wait for map or render
-    // ----------------------------
     console.log("🕐 Waiting for map to load...");
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // ----------------------------
-    // 📸 Capture Screenshot
-    // ----------------------------
+    // Capture screenshot
     const screenshot = await page.screenshot({
       encoding: "base64",
       fullPage: true,
@@ -113,9 +103,6 @@ app.post("/submit-dls", async (req, res) => {
 
     console.log("✅ Screenshot captured successfully!");
 
-    // ----------------------------
-    // 🎯 Return success response
-    // ----------------------------
     res.json({
       success: true,
       message: "DLS form processed successfully!",
@@ -125,7 +112,7 @@ app.post("/submit-dls", async (req, res) => {
   } catch (err) {
     console.error("❌ Puppeteer Error:", err);
     res.status(500).json({ success: false, error: err.message });
-  } finally {   
+  } finally {
     if (browser) {
       await browser.close();
       console.log("🧹 Browser closed.");
@@ -133,10 +120,8 @@ app.post("/submit-dls", async (req, res) => {
   }
 });
 
-// ----------------------------
-// 🖥️ Start Server
-// ----------------------------
+// ----------------------------------
+// Start server
+// ----------------------------------
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
-);
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
